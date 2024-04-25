@@ -47,7 +47,7 @@ jobs:
             # build-push action and qemu use different platform names
             # therefore we create a map
             { name: "amd64", qemu: "", docker: "linux/amd64" },
-            { name: "arm64", qemu: "arm64", docker: "linux/arm64" },
+            # { name: "arm64", qemu: "arm64", docker: "linux/arm64" },
           ]
     steps:
       - name: Create build id
