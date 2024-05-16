@@ -1,6 +1,6 @@
 import argparse
 import json
-from typing import Any, Callable
+from typing import Any, Callable, Dict, List, Optional
 
 ALPINE_VERSION = "alpine3.19"
 BASE_OSS = [
@@ -17,8 +17,8 @@ SUPPORTED_PYTHON_VERSIONS = ["3.8", "3.9", "3.10", LATEST_SUPPORTED_PYTHON_VERSI
 
 
 def generate_base_matrix_item(
-    flwr_version: str, python_version: str, os: dict[str, str]
-) -> dict[str, Any]:
+    flwr_version: str, python_version: str, os: Dict[str, str]
+) -> Dict[str, Any]:
     return {
         "os": os,
         "python_version": python_version,
@@ -28,8 +28,8 @@ def generate_base_matrix_item(
 
 
 def generate_base_image_matrix(
-    flwr_version: str, python_versions: list[str], oss: list[dict[str, str]]
-) -> list[dict[str, Any]]:
+    flwr_version: str, python_versions: List[str], oss: List[Dict[str, str]]
+) -> List[Dict[str, Any]]:
     return [
         generate_base_matrix_item(flwr_version, py, os)
         for os in oss
@@ -41,8 +41,8 @@ def generate_binary_matrix_item(
     namespace_repository: str,
     file_dir: str,
     base_image: str,
-    conditional_tags: None | Callable,
-) -> dict[str, Any]:
+    conditional_tags: Optional[Callable],
+) -> Dict[str, Any]:
     tags = [base_image["tag"]]
     if conditional_tags is not None:
         tags += conditional_tags(base_image) or []
@@ -59,9 +59,9 @@ def generate_binary_matrix(
     namespace_repository: str,
     file_dir: str,
     base_images: str,
-    conditional_tags: None | Callable = None,
-    filter: None | Callable = None,
-) -> list[dict[str, Any]]:
+    conditional_tags: Optional[Callable] = None,
+    filter: Optional[Callable] = None,
+) -> List[Dict[str, Any]]:
     filter = filter or (lambda _: True)
 
     return [
@@ -73,7 +73,7 @@ def generate_binary_matrix(
     ]
 
 
-def is_latest_python_alpine_image(image: dict[str, Any]) -> bool:
+def is_latest_python_alpine_image(image: Dict[str, Any]) -> bool:
     return (
         image["os"]["version"] == ALPINE_VERSION
         and image["python_version"] == LATEST_SUPPORTED_PYTHON_VERSIONS
@@ -89,7 +89,7 @@ args = arg_parser.parse_args()
 flwr_version = args.flwr_version
 
 
-def on_latest_python_alpine_image(image: dict[str, Any]) -> None | list[str]:
+def on_latest_python_alpine_image(image: Dict[str, Any]) -> Optional[List[str]]:
     if is_latest_python_alpine_image(image):
         return [flwr_version]
     else:
