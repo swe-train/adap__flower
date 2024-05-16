@@ -2,13 +2,13 @@ name: Build docker base image
 
 on:
   push:
-    branches: ["main"]
-    paths:
-      - "src/docker/base/**"
-      - ".github/workflows/docker-base.yml"
-      # re-run if something chnages in the bootstrap action (e.g. version of the dependencies)
-      - ".github/actions/bootstrap/action.yml"
-      - ".github/workflows/_docker-build.yml"
+    # branches: ["main"]
+    # paths:
+    #   - "src/docker/base/**"
+    #   - ".github/workflows/docker-base.yml"
+    #   # re-run if something chnages in the bootstrap action (e.g. version of the dependencies)
+    #   - ".github/actions/bootstrap/action.yml"
+    #   - ".github/workflows/_docker-build.yml"
 
 permissions:
   contents: read
@@ -45,6 +45,11 @@ jobs:
           - tag: ubuntu22.04
             version: 22.04
             file-dir: src/docker/base/ubuntu
+          - tag: alpine3.19
+            version: alpine3.19
+            file-dir: src/docker/base/alpine
+        include:
+          - flwr_version: "1.8.0"
     with:
       namespace-repository: flwr/base
       file-dir: ${{ matrix.os.file-dir }}
@@ -53,7 +58,8 @@ jobs:
         PIP_VERSION=${{ needs.parameters.outputs.pip-version }}
         SETUPTOOLS_VERSION=${{ needs.parameters.outputs.setuptools-version }}
         OS_VERSION=${{ matrix.os.version }}
-      tags: py${{ matrix.python-version }}-${{ matrix.os.tag }}
+        FLWR_VERSION=${{ matrix.flwr_version }}
+      tags: test-py${{ matrix.python-version }}-${{ matrix.os.tag }}
     secrets:
       dockerhub-user: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
