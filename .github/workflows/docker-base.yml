@@ -21,7 +21,7 @@ jobs:
     outputs:
       pip-version: ${{ steps.versions.outputs.pip-version }}
       setuptools-version: ${{ steps.versions.outputs.setuptools-version }}
-
+      matrix: ${{ steps.matrix.outputs.matrix }}
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
@@ -33,33 +33,49 @@ jobs:
           echo "pip-version=${{ steps.bootstrap.outputs.pip-version }}" >> "$GITHUB_OUTPUT"
           echo "setuptools-version=${{ steps.bootstrap.outputs.setuptools-version }}" >> "$GITHUB_OUTPUT"
 
+      - name: Generate job matrix
+        id: matrix
+        run: |
+           python dev/build-docker-image-matrix.py --flwr-version 1.8.0 > matrix.json
+           cat matrix.json
+           echo "matrix=$(cat matrix.json)" >> $GITHUB_OUTPUT
+
   build-base-images:
     name: Build base images
     uses: ./.github/workflows/_docker-build.yml
     needs: parameters
     strategy:
       fail-fast: false
-      matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
-        os:
-          - tag: ubuntu22.04
-            version: 22.04
-            file-dir: src/docker/base/ubuntu
-          - tag: alpine3.19
-            version: alpine3.19
-            file-dir: src/docker/base/alpine
-        include:
-          - flwr_version: "1.8.0"
+      matrix: ${{ fromJson(needs.parameters.outputs.matrix).base }}
     with:
       namespace-repository: flwr/base
-      file-dir: ${{ matrix.os.file-dir }}
+      file-dir: ${{ matrix.images.os.file_dir }}
       build-args: |
-        PYTHON_VERSION=${{ matrix.python-version }}
+        PYTHON_VERSION=${{ matrix.images.python_version }}
         PIP_VERSION=${{ needs.parameters.outputs.pip-version }}
         SETUPTOOLS_VERSION=${{ needs.parameters.outputs.setuptools-version }}
-        OS_VERSION=${{ matrix.os.version }}
-        FLWR_VERSION=${{ matrix.flwr_version }}
-      tags: test-py${{ matrix.python-version }}-${{ matrix.os.tag }}
+        OS_VERSION=${{ matrix.images.os.version }}
+        FLWR_VERSION=${{ matrix.images.flwr_version }}
+      tags: test-${{ matrix.images.os.tag }}
+    secrets:
+      dockerhub-user: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+
+
+  build-serverapp-images:
+    name: Build images
+    uses: ./.github/workflows/_docker-build.yml
+    needs: [parameters, build-base-images]
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.parameters.outputs.matrix).serverapp }}
+    with:
+      namespace-repository: flwr/serverapp
+      file-dir: ${{ matrix.images.file_dir }}
+      build-args: |
+        PYTHON_VERSION=${{ matrix.images.python_version }}
+        UBUNTU_VERSION=ubuntu22.04
+      tags: test
     secrets:
       dockerhub-user: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
