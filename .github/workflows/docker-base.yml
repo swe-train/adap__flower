@@ -1,14 +1,12 @@
-name: Build docker base image
+name: Build docker image
 
 on:
-  push:
-    # branches: ["main"]
-    # paths:
-    #   - "src/docker/base/**"
-    #   - ".github/workflows/docker-base.yml"
-    #   # re-run if something chnages in the bootstrap action (e.g. version of the dependencies)
-    #   - ".github/actions/bootstrap/action.yml"
-    #   - ".github/workflows/_docker-build.yml"
+  workflow_dispatch:
+    inputs:
+      flwr-version:
+        description: "Version of Flower."
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -33,10 +31,9 @@ jobs:
           echo "pip-version=${{ steps.bootstrap.outputs.pip-version }}" >> "$GITHUB_OUTPUT"
           echo "setuptools-version=${{ steps.bootstrap.outputs.setuptools-version }}" >> "$GITHUB_OUTPUT"
 
-      - name: Generate job matrix
-        id: matrix
+      - id: matrix
         run: |
-           python dev/build-docker-image-matrix.py --flwr-version 1.8.0 > matrix.json
+           python dev/build-docker-image-matrix.py --flwr-version ${{ github.event.inputs.flwr-version }} > matrix.json
            cat matrix.json
            echo "matrix=$(cat matrix.json)" >> $GITHUB_OUTPUT
 
@@ -61,20 +58,17 @@ jobs:
       dockerhub-user: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
 
-
-  build-serverapp-images:
-    name: Build images
+  build-binary-images:
+    name: Build binary images
     uses: ./.github/workflows/_docker-build.yml
     needs: [parameters, build-base-images]
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.parameters.outputs.matrix).serverapp }}
+      matrix: ${{ fromJson(needs.parameters.outputs.matrix).binary }}
     with:
-      namespace-repository: flwr/serverapp
+      namespace-repository: ${{ matrix.images.namespace_repository }}
       file-dir: ${{ matrix.images.file_dir }}
-      build-args: |
-        PYTHON_VERSION=${{ matrix.images.python_version }}
-        UBUNTU_VERSION=ubuntu22.04
+      build-args: BASE_IMAGE=${{ matrix.images.base_image }}
       tags: test
     secrets:
       dockerhub-user: ${{ secrets.DOCKERHUB_USERNAME }}
