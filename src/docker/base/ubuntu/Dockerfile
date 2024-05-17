@@ -18,18 +18,7 @@ ARG DISTRO=ubuntu
 ARG DISTRO_VERSION=22.04
 FROM $DISTRO:$DISTRO_VERSION as python
 
-ENV DEBIAN_FRONTEND=noninteractive \
-    # Send stdout and stderr stream directly to the terminal. Ensures that no
-    # output is retained in a buffer if the application crashes.
-    PYTHONUNBUFFERED=1 \
-    # Typically, bytecode is created on the first invocation to speed up following invocation.
-    # However, in Docker we only make a single invocation (when we start the container).
-    # Therefore, we can disable bytecode writing.
-    PYTHONDONTWRITEBYTECODE=1 \
-    # Ensure that python encoding is always UTF-8.
-    PYTHONIOENCODING=UTF-8 \
-    LANG=C.UTF-8 \
-    LC_ALL=C.UTF-8
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install system dependencies
 RUN apt-get update \
@@ -62,6 +51,8 @@ RUN LATEST=$(pyenv latest -k ${PYTHON_VERSION}) \
 
 FROM $DISTRO:$DISTRO_VERSION as base
 
+ENV DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update \
     && apt-get -y --no-install-recommends install \
     libsqlite3-dev \
@@ -69,14 +60,24 @@ RUN apt-get update \
 
 COPY --from=python /usr/local/bin/python /usr/local/bin/python
 
-ENV PATH=/usr/local/bin/python/bin:$PATH
+ENV PATH=/usr/local/bin/python/bin:$PATH \
+    # Send stdout and stderr stream directly to the terminal. Ensures that no
+    # output is retained in a buffer if the application crashes.
+    PYTHONUNBUFFERED=1 \
+    # Typically, bytecode is created on the first invocation to speed up following invocation.
+    # However, in Docker we only make a single invocation (when we start the container).
+    # Therefore, we can disable bytecode writing.
+    PYTHONDONTWRITEBYTECODE=1 \
+    # Ensure that python encoding is always UTF-8.
+    PYTHONIOENCODING=UTF-8 \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
 
 ARG PIP_VERSION
 ARG SETUPTOOLS_VERSION
 ARG FLWR_VERSION
 ARG FLWR_PACKAGE=flwr
-RUN python -m ensurepip --upgrad \
-    && pip install -U --no-cache-dir \
+RUN pip install -U --no-cache-dir \
     pip==${PIP_VERSION} \
     setuptools==${SETUPTOOLS_VERSION} \
     ${FLWR_PACKAGE}==${FLWR_VERSION}
