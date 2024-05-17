@@ -1,12 +1,13 @@
-name: Build docker base image
+name: Build docker image
 
 on:
-  workflow_dispatch:
-    inputs:
-      flwr-version:
-        description: "Version of Flower."
-        required: true
-        type: string
+  push:
+  # workflow_dispatch:
+  #   inputs:
+  #     flwr-version:
+  #       description: "Version of Flower."
+  #       required: true
+  #       type: string
 
 permissions:
   contents: read
@@ -19,7 +20,7 @@ jobs:
     outputs:
       pip-version: ${{ steps.versions.outputs.pip-version }}
       setuptools-version: ${{ steps.versions.outputs.setuptools-version }}
-
+      matrix: ${{ steps.matrix.outputs.matrix }}
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
@@ -31,24 +32,24 @@ jobs:
           echo "pip-version=${{ steps.bootstrap.outputs.pip-version }}" >> "$GITHUB_OUTPUT"
           echo "setuptools-version=${{ steps.bootstrap.outputs.setuptools-version }}" >> "$GITHUB_OUTPUT"
 
+      - id: matrix
+        run: |
+           python dev/build-docker-image-matrix.py --flwr-version 1.8.0 > matrix.json
+           cat matrix.json
+           echo "matrix=$(cat matrix.json)" >> $GITHUB_OUTPUT
+
   build-base-images:
     name: Build base images
     uses: ./.github/workflows/_docker-build.yml
     needs: parameters
     strategy:
       fail-fast: false
-      matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
-        distro:
-          - name: ubuntu
-            version: "22.04"
-          - name: alpine
-            version: "3.19"
+      matrix: ${{ fromJson(needs.parameters.outputs.matrix).base }}
     with:
       namespace-repository: flwr/base
-      file-dir: src/docker/base/${{ matrix.distro.name }}
+      file-dir: ${{ matrix.images.os.file_dir }}
       build-args: |
-        PYTHON_VERSION=${{ matrix.python-version }}
+        PYTHON_VERSION=${{ matrix.images.python_version }}
         PIP_VERSION=${{ needs.parameters.outputs.pip-version }}
         SETUPTOOLS_VERSION=${{ needs.parameters.outputs.setuptools-version }}
         DISTRO=${{ matrix.distro.name }}
@@ -58,3 +59,19 @@ jobs:
     secrets:
       dockerhub-user: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  # build-binary-images:
+  #   name: Build binary images
+  #   uses: ./.github/workflows/_docker-build.yml
+  #   needs: [parameters, build-base-images]
+  #   strategy:
+  #     fail-fast: false
+  #     matrix: ${{ fromJson(needs.parameters.outputs.matrix).binary }}
+  #   with:
+  #     namespace-repository: ${{ matrix.images.namespace_repository }}
+  #     file-dir: ${{ matrix.images.file_dir }}
+  #     build-args: BASE_IMAGE=${{ matrix.images.base_image }}
+  #     tags: test
+  #   secrets:
+  #     dockerhub-user: ${{ secrets.DOCKERHUB_USERNAME }}
+  #     dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
