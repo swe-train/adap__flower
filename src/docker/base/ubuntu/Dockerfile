@@ -16,7 +16,7 @@
 # hadolint global ignore=DL3008
 ARG DISTRO=ubuntu
 ARG DISTRO_VERSION=22.04
-FROM $DISTRO:$DISTRO_VERSION as base
+FROM $DISTRO:$DISTRO_VERSION as python
 
 ENV DEBIAN_FRONTEND=noninteractive \
     # Send stdout and stderr stream directly to the terminal. Ensures that no
@@ -40,6 +40,47 @@ RUN apt-get update \
     libxmlsec1-dev libffi-dev liblzma-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Install PyEnv and Python in the “app” user’s home directory. Installing to "root" results in a
+# permission error when running the Flower binaries with an "app" user.
+ARG PYTHON_VERSION=3.11
+ENV PYENV_ROOT=/root/.pyenv
+ENV PATH $PYENV_ROOT/bin:$PATH
+# https://github.com/hadolint/hadolint/wiki/DL4006
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+RUN curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+
+# hadolint ignore=DL3003
+RUN git clone https://github.com/pyenv/pyenv.git \
+    && cd pyenv/plugins/python-build || exit \
+    && ./install.sh
+
+# Issue: python-build only accepts the exact Python version e.g. 3.11.1 but
+# we want to allow more general versions like 3.11
+# Solution: use pyenv to always get the exact version and pass it to python-build
+RUN LATEST=$(pyenv latest -k ${PYTHON_VERSION}) \
+    && python-build "${LATEST}" /usr/local/bin/python
+
+FROM $DISTRO:$DISTRO_VERSION as base
+
+RUN apt-get update \
+    && apt-get -y --no-install-recommends install \
+    libsqlite3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=python /usr/local/bin/python /usr/local/bin/python
+
+ENV PATH=/usr/local/bin/python/bin:$PATH
+
+ARG PIP_VERSION
+ARG SETUPTOOLS_VERSION
+ARG FLWR_VERSION
+ARG FLWR_PACKAGE=flwr
+RUN python -m ensurepip --upgrad \
+    && pip install -U --no-cache-dir \
+    pip==${PIP_VERSION} \
+    setuptools==${SETUPTOOLS_VERSION} \
+    ${FLWR_PACKAGE}==${FLWR_VERSION}
+
 # add non-root user
 RUN adduser \
     --no-create-home \
@@ -52,23 +93,3 @@ RUN adduser \
 WORKDIR /app
 USER app
 ENV HOME=/app
-
-# Install PyEnv and Python
-ARG PYTHON_VERSION=3.11
-ENV PYENV_ROOT /app/.pyenv
-ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-RUN curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
-RUN pyenv install ${PYTHON_VERSION} \
-    && pyenv global ${PYTHON_VERSION} \
-    && pyenv rehash
-
-ARG PIP_VERSION
-ARG SETUPTOOLS_VERSION
-ARG FLWR_VERSION
-ARG FLWR_PACKAGE=flwr
-RUN pip install -U --no-cache-dir \
-    pip==${PIP_VERSION} \
-    setuptools==${SETUPTOOLS_VERSION} \
-    ${FLWR_PACKAGE}==${FLWR_VERSION}
