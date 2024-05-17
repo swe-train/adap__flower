@@ -1,0 +1,206 @@
+{
+    "base": {
+        "images": [
+            {
+                "distro": {
+                    "name": "ubuntu",
+                    "version": "22.04"
+                },
+                "python_version": "3.8",
+                "namespace_repository": "flwr/base",
+                "file_dir": "src/docker/base/ubuntu",
+                "tag": "1.8.0-py3.8-ubuntu22.04",
+                "flwr_version": "1.8.0"
+            },
+            {
+                "distro": {
+                    "name": "ubuntu",
+                    "version": "22.04"
+                },
+                "python_version": "3.9",
+                "namespace_repository": "flwr/base",
+                "file_dir": "src/docker/base/ubuntu",
+                "tag": "1.8.0-py3.9-ubuntu22.04",
+                "flwr_version": "1.8.0"
+            },
+            {
+                "distro": {
+                    "name": "ubuntu",
+                    "version": "22.04"
+                },
+                "python_version": "3.10",
+                "namespace_repository": "flwr/base",
+                "file_dir": "src/docker/base/ubuntu",
+                "tag": "1.8.0-py3.10-ubuntu22.04",
+                "flwr_version": "1.8.0"
+            },
+            {
+                "distro": {
+                    "name": "ubuntu",
+                    "version": "22.04"
+                },
+                "python_version": "3.11",
+                "namespace_repository": "flwr/base",
+                "file_dir": "src/docker/base/ubuntu",
+                "tag": "1.8.0-py3.11-ubuntu22.04",
+                "flwr_version": "1.8.0"
+            },
+            {
+                "distro": {
+                    "name": "alpine",
+                    "version": "3.19"
+                },
+                "python_version": "3.8",
+                "namespace_repository": "flwr/base",
+                "file_dir": "src/docker/base/alpine",
+                "tag": "1.8.0-py3.8-alpine3.19",
+                "flwr_version": "1.8.0"
+            },
+            {
+                "distro": {
+                    "name": "alpine",
+                    "version": "3.19"
+                },
+                "python_version": "3.9",
+                "namespace_repository": "flwr/base",
+                "file_dir": "src/docker/base/alpine",
+                "tag": "1.8.0-py3.9-alpine3.19",
+                "flwr_version": "1.8.0"
+            },
+            {
+                "distro": {
+                    "name": "alpine",
+                    "version": "3.19"
+                },
+                "python_version": "3.10",
+                "namespace_repository": "flwr/base",
+                "file_dir": "src/docker/base/alpine",
+                "tag": "1.8.0-py3.10-alpine3.19",
+                "flwr_version": "1.8.0"
+            },
+            {
+                "distro": {
+                    "name": "alpine",
+                    "version": "3.19"
+                },
+                "python_version": "3.11",
+                "namespace_repository": "flwr/base",
+                "file_dir": "src/docker/base/alpine",
+                "tag": "1.8.0-py3.11-alpine3.19",
+                "flwr_version": "1.8.0"
+            }
+        ]
+    },
+    "binary": {
+        "images": [
+            {
+                "namespace_repository": "flwr/superlink",
+                "file_dir": "src/docker/superlink",
+                "base_image": "1.8.0-py3.11-ubuntu22.04",
+                "tags": "1.8.0-py3.11-ubuntu22.04"
+            },
+            {
+                "namespace_repository": "flwr/superlink",
+                "file_dir": "src/docker/superlink",
+                "base_image": "1.8.0-py3.11-alpine3.19",
+                "tags": "1.8.0-py3.11-alpine3.19\n1.8.0"
+            },
+            {
+                "namespace_repository": "flwr/supernode",
+                "file_dir": "src/docker/supernode",
+                "base_image": "1.8.0-py3.8-ubuntu22.04",
+                "tags": "1.8.0-py3.8-ubuntu22.04"
+            },
+            {
+                "namespace_repository": "flwr/supernode",
+                "file_dir": "src/docker/supernode",
+                "base_image": "1.8.0-py3.9-ubuntu22.04",
+                "tags": "1.8.0-py3.9-ubuntu22.04"
+            },
+            {
+                "namespace_repository": "flwr/supernode",
+                "file_dir": "src/docker/supernode",
+                "base_image": "1.8.0-py3.10-ubuntu22.04",
+                "tags": "1.8.0-py3.10-ubuntu22.04"
+            },
+            {
+                "namespace_repository": "flwr/supernode",
+                "file_dir": "src/docker/supernode",
+                "base_image": "1.8.0-py3.11-ubuntu22.04",
+                "tags": "1.8.0-py3.11-ubuntu22.04"
+            },
+            {
+                "namespace_repository": "flwr/supernode",
+                "file_dir": "src/docker/supernode",
+                "base_image": "1.8.0-py3.8-alpine3.19",
+                "tags": "1.8.0-py3.8-alpine3.19"
+            },
+            {
+                "namespace_repository": "flwr/supernode",
+                "file_dir": "src/docker/supernode",
+                "base_image": "1.8.0-py3.9-alpine3.19",
+                "tags": "1.8.0-py3.9-alpine3.19"
+            },
+            {
+                "namespace_repository": "flwr/supernode",
+                "file_dir": "src/docker/supernode",
+                "base_image": "1.8.0-py3.10-alpine3.19",
+                "tags": "1.8.0-py3.10-alpine3.19"
+            },
+            {
+                "namespace_repository": "flwr/supernode",
+                "file_dir": "src/docker/supernode",
+                "base_image": "1.8.0-py3.11-alpine3.19",
+                "tags": "1.8.0-py3.11-alpine3.19\n1.8.0"
+            },
+            {
+                "namespace_repository": "flwr/serverapp",
+                "file_dir": "src/docker/serverapp",
+                "base_image": "1.8.0-py3.8-ubuntu22.04",
+                "tags": "1.8.0-py3.8-ubuntu22.04"
+            },
+            {
+                "namespace_repository": "flwr/serverapp",
+                "file_dir": "src/docker/serverapp",
+                "base_image": "1.8.0-py3.9-ubuntu22.04",
+                "tags": "1.8.0-py3.9-ubuntu22.04"
+            },
+            {
+                "namespace_repository": "flwr/serverapp",
+                "file_dir": "src/docker/serverapp",
+                "base_image": "1.8.0-py3.10-ubuntu22.04",
+                "tags": "1.8.0-py3.10-ubuntu22.04"
+            },
+            {
+                "namespace_repository": "flwr/serverapp",
+                "file_dir": "src/docker/serverapp",
+                "base_image": "1.8.0-py3.11-ubuntu22.04",
+                "tags": "1.8.0-py3.11-ubuntu22.04"
+            },
+            {
+                "namespace_repository": "flwr/serverapp",
+                "file_dir": "src/docker/serverapp",
+                "base_image": "1.8.0-py3.8-alpine3.19",
+                "tags": "1.8.0-py3.8-alpine3.19"
+            },
+            {
+                "namespace_repository": "flwr/serverapp",
+                "file_dir": "src/docker/serverapp",
+                "base_image": "1.8.0-py3.9-alpine3.19",
+                "tags": "1.8.0-py3.9-alpine3.19"
+            },
+            {
+                "namespace_repository": "flwr/serverapp",
+                "file_dir": "src/docker/serverapp",
+                "base_image": "1.8.0-py3.10-alpine3.19",
+                "tags": "1.8.0-py3.10-alpine3.19"
+            },
+            {
+                "namespace_repository": "flwr/serverapp",
+                "file_dir": "src/docker/serverapp",
+                "base_image": "1.8.0-py3.11-alpine3.19",
+                "tags": "1.8.0-py3.11-alpine3.19\n1.8.0"
+            }
+        ]
+    }
+}

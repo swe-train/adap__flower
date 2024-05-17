@@ -1,3 +1,7 @@
+"""
+Usage: python dev/build-docker-image-matrix.py --flwr-version <flower version e.g. 1.8.0>
+"""
+
 import argparse
 from dataclasses import asdict, dataclass
 from enum import Enum
@@ -36,6 +40,7 @@ DOCKERFILE_ROOT = "src/docker"
 class BaseImage:
     distro: Distro
     python_version: str
+    namespace_repository: str
     file_dir: str
     tag: str
     flwr_version: str
@@ -47,6 +52,7 @@ def new_base_image(
     return BaseImage(
         distro,
         python_version,
+        "flwr/base",
         f"{DOCKERFILE_ROOT}/base/{distro.name}",
         f"{flwr_version}-py{python_version}-{distro.name}{distro.version}",
         flwr_version,
@@ -125,6 +131,7 @@ if __name__ == "__main__":
 
     flwr_version = args.flwr_version
 
+    # ubuntu and alpine base images for each supported python version
     base_images = generate_base_images(
         flwr_version,
         SUPPORTED_PYTHON_VERSIONS,
@@ -132,17 +139,20 @@ if __name__ == "__main__":
     )
 
     binary_images = (
+        # ubuntu and alpine images for the latest supported python version
         generate_binary_images(
             "superlink",
             base_images,
             tag_latest_with_flwr_version,
             lambda image: image.python_version == LATEST_SUPPORTED_PYTHON_VERSION,
         )
+        # ubuntu and alpine images for each supported python version
         + generate_binary_images(
             "supernode",
             base_images,
             tag_latest_with_flwr_version,
         )
+        # ubuntu and alpine images for each supported python version
         + generate_binary_images(
             "serverapp",
             base_images,
@@ -159,6 +169,7 @@ if __name__ == "__main__":
     #                     "version": "22.04"
     #                 },
     #                 "python_version": "3.8",
+    #                 "namespace_repository": "flwr/base",
     #                 "file_dir": "src/docker/base/ubuntu",
     #                 "tag": "1.8.0-py3.8-ubuntu22.04",
     #                 "flwr_version": "1.8.0"
